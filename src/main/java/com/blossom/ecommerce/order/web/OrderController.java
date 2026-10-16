@@ -4,9 +4,10 @@ import com.blossom.ecommerce.auth.security.AuthenticatedUser;
 import com.blossom.ecommerce.common.dto.PageResponse;
 import com.blossom.ecommerce.order.dto.CreateOrderRequest;
 import com.blossom.ecommerce.order.dto.OrderResponse;
-import com.blossom.ecommerce.order.service.OrderService;
 import com.blossom.ecommerce.order.dto.UpdateOrderStatusRequest;
+import com.blossom.ecommerce.order.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -37,6 +38,7 @@ public class OrderController {
 	private final OrderService orderService;
 
 	@PostMapping
+	@ApiResponse(responseCode = "201", description = "Creado")
 	public ResponseEntity<OrderResponse> create(@AuthenticationPrincipal AuthenticatedUser principal,
 			@Valid @RequestBody CreateOrderRequest request) {
 		OrderResponse created = orderService.create(principal.id(), request);

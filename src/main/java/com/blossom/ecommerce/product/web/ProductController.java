@@ -5,6 +5,7 @@ import com.blossom.ecommerce.product.dto.ProductRequest;
 import com.blossom.ecommerce.product.dto.ProductResponse;
 import com.blossom.ecommerce.product.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -52,6 +53,7 @@ public class ProductController {
 	@PostMapping
 	@PreAuthorize("hasRole('ADMIN')")
 	@SecurityRequirement(name = "bearerAuth")
+	@ApiResponse(responseCode = "201", description = "Creado")
 	public ResponseEntity<ProductResponse> create(@Valid @RequestBody ProductRequest request) {
 		ProductResponse created = productService.create(request);
 		return ResponseEntity.created(URI.create("/api/v1/products/" + created.id())).body(created);
