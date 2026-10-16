@@ -7,8 +7,15 @@ spring:
     password: ${DB_PASSWORD:bloom}
   jpa:
     open-in-view: false
+    properties:
+      hibernate.default_batch_fetch_size: 50   # evita N+1 al paginar órdenes con sus ítems
     hibernate:
       ddl-auto: validate
+  data:
+    web:
+      pageable:
+        default-page-size: 12
+        max-page-size: 50
   flyway:
     enabled: true
 

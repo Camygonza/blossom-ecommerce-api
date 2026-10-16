@@ -4,6 +4,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -57,11 +58,26 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 		return pd;
 	}
 
+	@ExceptionHandler(BadRequestException.class)
+	ProblemDetail handleBadRequest(BadRequestException ex) {
+		ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+		pd.setTitle("Solicitud inválida");
+		return pd;
+	}
+
 	@ExceptionHandler({ ConflictException.class, DataIntegrityViolationException.class })
 	ProblemDetail handleConflict(RuntimeException ex) {
 		String detail = ex instanceof ConflictException ? ex.getMessage() : "La operación viola una restricción de datos";
 		ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, detail);
 		pd.setTitle("Conflicto");
+		return pd;
+	}
+
+	@ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+	ProblemDetail handleOptimisticLock(ObjectOptimisticLockingFailureException ex) {
+		ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,
+				"El recurso fue modificado por otra operación simultánea; reintenta");
+		pd.setTitle("Conflicto de concurrencia");
 		return pd;
 	}
 

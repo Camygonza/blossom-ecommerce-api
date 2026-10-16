@@ -126,13 +126,13 @@ class AuthIntegrationTest {
 		String admin = "Bearer " + loginAs("admin@bloom.test", "Admin123!", "$.accessToken");
 		String customer = "Bearer " + loginAs("cliente@bloom.test", "Cliente123!", "$.accessToken");
 
-		mvc.perform(get("/api/v1/test/admin-only").header(HttpHeaders.AUTHORIZATION, admin)).andExpect(status().isOk());
-		mvc.perform(get("/api/v1/test/admin-only").header(HttpHeaders.AUTHORIZATION, customer))
+		mvc.perform(get("/api/v1/orders/me").header(HttpHeaders.AUTHORIZATION, customer)).andExpect(status().isOk());
+		mvc.perform(get("/api/v1/orders/me").header(HttpHeaders.AUTHORIZATION, admin))
 			.andExpect(status().isForbidden())
 			.andExpect(jsonPath("$.status").value(403));
-		mvc.perform(get("/api/v1/test/customer-only").header(HttpHeaders.AUTHORIZATION, admin))
+		mvc.perform(MockMvcRequestBuilders.delete("/api/v1/products/99999").header(HttpHeaders.AUTHORIZATION, customer))
 			.andExpect(status().isForbidden());
-		mvc.perform(get("/api/v1/test/admin-only")).andExpect(status().isUnauthorized());
+		mvc.perform(get("/api/v1/orders/me")).andExpect(status().isUnauthorized());
 	}
 
 	@Test
@@ -183,9 +183,8 @@ class AuthIntegrationTest {
 		mvc.perform(get("/v3/api-docs")).andExpect(status().isOk());
 		mvc.perform(get("/swagger-ui/index.html")).andExpect(status().isOk());
 		mvc.perform(get("/actuator/health")).andExpect(status().isOk());
-		// el catálogo llega en F3: aquí basta con que no exija autenticación (404 y no 401)
-		mvc.perform(get("/api/v1/products")).andExpect(status().isNotFound());
-		mvc.perform(get("/api/v1/categories")).andExpect(status().isNotFound());
+		mvc.perform(get("/api/v1/products")).andExpect(status().isOk());
+		mvc.perform(get("/api/v1/categories")).andExpect(status().isOk());
 	}
 
 	@Test
