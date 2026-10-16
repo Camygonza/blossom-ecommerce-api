@@ -3,6 +3,7 @@ package com.blossom.ecommerce.order.service;
 import com.blossom.ecommerce.common.OptimisticRetry;
 import com.blossom.ecommerce.common.dto.PageResponse;
 import com.blossom.ecommerce.common.error.ResourceNotFoundException;
+import com.blossom.ecommerce.order.domain.OrderStatus;
 import com.blossom.ecommerce.order.dto.CreateOrderRequest;
 import com.blossom.ecommerce.order.dto.OrderResponse;
 import com.blossom.ecommerce.order.mapper.OrderMapper;
@@ -31,6 +32,16 @@ public class OrderService {
 	/** Sin {@code @Transactional}: cada intento abre su transacción en {@link OrderOperations}. */
 	public OrderResponse create(Long userId, CreateOrderRequest request) {
 		return OptimisticRetry.run(MAX_ATTEMPTS, () -> operations.place(userId, request));
+	}
+
+	/** El cliente cancela su propia orden pendiente; el stock vuelve al inventario. */
+	public OrderResponse cancel(Long userId, Long orderId) {
+		return OptimisticRetry.run(MAX_ATTEMPTS, () -> operations.transition(orderId, OrderStatus.CANCELLED, userId));
+	}
+
+	/** Cambio de estado por un administrador (pago, envío, entrega o cancelación). */
+	public OrderResponse updateStatus(Long orderId, OrderStatus target) {
+		return OptimisticRetry.run(MAX_ATTEMPTS, () -> operations.transition(orderId, target, null));
 	}
 
 	@Transactional(readOnly = true)

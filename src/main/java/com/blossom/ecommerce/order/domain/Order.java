@@ -12,6 +12,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +35,9 @@ public class Order extends BaseEntity {
 
 	@Column(nullable = false, precision = 12, scale = 2)
 	private BigDecimal total = BigDecimal.ZERO;
+
+	@Version
+	private Long version;
 
 	@OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<OrderItem> items = new ArrayList<>();

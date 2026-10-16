@@ -5,6 +5,8 @@ import com.blossom.ecommerce.common.dto.PageResponse;
 import com.blossom.ecommerce.order.dto.CreateOrderRequest;
 import com.blossom.ecommerce.order.dto.OrderResponse;
 import com.blossom.ecommerce.order.service.OrderService;
+import com.blossom.ecommerce.order.dto.UpdateOrderStatusRequest;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -17,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -44,6 +47,20 @@ public class OrderController {
 	public PageResponse<OrderResponse> mine(@AuthenticationPrincipal AuthenticatedUser principal,
 			@ParameterObject @PageableDefault(size = 10) Pageable pageable) {
 		return orderService.findMine(principal.id(), pageable);
+	}
+
+	@PostMapping("/{id}/cancel")
+	@Operation(summary = "Cancela una orden propia pendiente y repone el stock")
+	public OrderResponse cancel(@AuthenticationPrincipal AuthenticatedUser principal, @PathVariable Long id) {
+		return orderService.cancel(principal.id(), id);
+	}
+
+	@PatchMapping("/{id}/status")
+	@PreAuthorize("hasRole('ADMIN')")
+	@Operation(summary = "Cambia el estado de una orden (ADMIN)",
+			description = "PENDING→PAID|CANCELLED, PAID→SHIPPED|CANCELLED, SHIPPED→DELIVERED. Cancelar repone stock.")
+	public OrderResponse updateStatus(@PathVariable Long id, @Valid @RequestBody UpdateOrderStatusRequest request) {
+		return orderService.updateStatus(id, request.status());
 	}
 
 	@GetMapping("/{id}")

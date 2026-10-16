@@ -2,8 +2,10 @@ package com.blossom.ecommerce.order.service;
 
 import com.blossom.ecommerce.common.error.BadRequestException;
 import com.blossom.ecommerce.common.error.ConflictException;
+import com.blossom.ecommerce.common.error.ResourceNotFoundException;
 import com.blossom.ecommerce.order.domain.Order;
 import com.blossom.ecommerce.order.domain.OrderItem;
+import com.blossom.ecommerce.order.domain.OrderStatus;
 import com.blossom.ecommerce.order.dto.CreateOrderRequest;
 import com.blossom.ecommerce.order.dto.OrderItemRequest;
 import com.blossom.ecommerce.order.dto.OrderResponse;
@@ -19,6 +21,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -73,6 +76,37 @@ public class OrderOperations {
 		}
 		order.setTotal(total);
 		return mapper.toResponse(orders.saveAndFlush(order));
+	}
+
+	/**
+	 * Cambia el estado respetando la máquina de estados de {@link OrderStatus}. Al cancelar repone el stock de
+	 * los productos físicos. Con {@code ownerId} (cliente) la orden ajena es un 404 y solo se cancela si está PENDING.
+	 */
+	@Transactional
+	public OrderResponse transition(Long orderId, OrderStatus target, Long ownerId) {
+		Order order = orders.findById(orderId)
+			.filter(o -> ownerId == null || o.getUser().getId().equals(ownerId))
+			.orElseThrow(() -> new ResourceNotFoundException("Orden %d no encontrada".formatted(orderId)));
+		if (ownerId != null && order.getStatus() != OrderStatus.PENDING) {
+			throw new ConflictException("Solo se pueden cancelar órdenes pendientes; la orden está " + order.getStatus());
+		}
+		if (!order.getStatus().canTransitionTo(target)) {
+			throw new ConflictException("Transición no permitida: %s → %s".formatted(order.getStatus(), target));
+		}
+		if (target == OrderStatus.CANCELLED) {
+			restock(order);
+		}
+		order.setStatus(target);
+		return mapper.toResponse(orders.saveAndFlush(order));
+	}
+
+	private void restock(Order order) {
+		for (OrderItem item : order.getItems()) {
+			// el producto de un OrderItem es un proxy perezoso de Product: hay que resolver la subclase real
+			if (Hibernate.unproxy(item.getProduct()) instanceof PhysicalProduct physical) {
+				physical.setStock(physical.getStock() + item.getQuantity());
+			}
+		}
 	}
 
 }
