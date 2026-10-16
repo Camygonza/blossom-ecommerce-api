@@ -33,6 +33,10 @@ app:
       lock-max-failed-attempts: 5                           # fallos consecutivos para bloquear la cuenta
       lock-duration-minutes: 15
 
+logging:
+  pattern:
+    level: "%5p [%X{requestId:-}]"   # requestId lo pone RequestIdFilter
+
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
