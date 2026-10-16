@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
+import java.time.Instant;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -29,6 +30,11 @@ public class User extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 20)
 	private Role role = Role.CUSTOMER;
+
+	@Column(nullable = false)
+	private int failedLoginAttempts;
+
+	private Instant lockedUntil;
 
 	public User(String email, String passwordHash, String fullName, Role role) {
 		this.email = email;
