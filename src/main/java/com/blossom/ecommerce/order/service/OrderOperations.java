@@ -10,6 +10,7 @@ import com.blossom.ecommerce.order.dto.CreateOrderRequest;
 import com.blossom.ecommerce.order.dto.OrderItemRequest;
 import com.blossom.ecommerce.order.dto.OrderResponse;
 import com.blossom.ecommerce.order.mapper.OrderMapper;
+import com.blossom.ecommerce.order.notification.OrderEvent;
 import com.blossom.ecommerce.order.repository.OrderRepository;
 import com.blossom.ecommerce.product.domain.PhysicalProduct;
 import com.blossom.ecommerce.product.domain.Product;
@@ -22,6 +23,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +42,8 @@ public class OrderOperations {
 	private final UserRepository users;
 
 	private final OrderMapper mapper;
+
+	private final ApplicationEventPublisher events;
 
 	/**
 	 * Valida productos, descuenta stock (el {@code @Version} de Product detecta escrituras concurrentes),
@@ -75,7 +79,9 @@ public class OrderOperations {
 			total = total.add(product.getPrice().multiply(BigDecimal.valueOf(quantity)));
 		}
 		order.setTotal(total);
-		return mapper.toResponse(orders.saveAndFlush(order));
+		Order saved = orders.saveAndFlush(order);
+		events.publishEvent(eventOf(saved, null));
+		return mapper.toResponse(saved);
 	}
 
 	/**
@@ -96,8 +102,15 @@ public class OrderOperations {
 		if (target == OrderStatus.CANCELLED) {
 			restock(order);
 		}
+		OrderStatus previous = order.getStatus();
 		order.setStatus(target);
-		return mapper.toResponse(orders.saveAndFlush(order));
+		Order saved = orders.saveAndFlush(order);
+		events.publishEvent(eventOf(saved, previous));
+		return mapper.toResponse(saved);
+	}
+
+	private OrderEvent eventOf(Order order, OrderStatus previous) {
+		return new OrderEvent(order.getId(), order.getUser().getEmail(), previous, order.getStatus(), order.getTotal());
 	}
 
 	private void restock(Order order) {

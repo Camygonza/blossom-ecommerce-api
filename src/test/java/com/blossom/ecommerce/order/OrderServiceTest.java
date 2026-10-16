@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -54,12 +55,15 @@ class OrderServiceTest {
 	@Mock
 	private UserRepository users;
 
+	@Mock
+	private ApplicationEventPublisher events;
+
 	private OrderService service;
 
 	@BeforeEach
 	void setUp() {
 		OrderMapper mapper = Mappers.getMapper(OrderMapper.class);
-		service = new OrderService(orders, new OrderOperations(orders, products, users, mapper), mapper);
+		service = new OrderService(orders, new OrderOperations(orders, products, users, mapper, events), mapper);
 		when(users.getReferenceById(7L)).thenReturn(user(7L));
 		when(orders.saveAndFlush(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
 	}
