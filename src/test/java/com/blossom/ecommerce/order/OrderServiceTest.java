@@ -17,6 +17,7 @@ import com.blossom.ecommerce.order.dto.OrderItemRequest;
 import com.blossom.ecommerce.order.dto.OrderResponse;
 import com.blossom.ecommerce.order.mapper.OrderMapper;
 import com.blossom.ecommerce.order.repository.OrderRepository;
+import com.blossom.ecommerce.order.service.OrderOperations;
 import com.blossom.ecommerce.order.service.OrderService;
 import com.blossom.ecommerce.product.domain.DigitalProduct;
 import com.blossom.ecommerce.product.domain.PhysicalProduct;
@@ -58,7 +59,7 @@ class OrderServiceTest {
 	@BeforeEach
 	void setUp() {
 		OrderMapper mapper = Mappers.getMapper(OrderMapper.class);
-		service = new OrderService(orders, products, users, mapper);
+		service = new OrderService(orders, new OrderOperations(orders, products, users, mapper), mapper);
 		when(users.getReferenceById(7L)).thenReturn(user(7L));
 		when(orders.saveAndFlush(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
 	}
