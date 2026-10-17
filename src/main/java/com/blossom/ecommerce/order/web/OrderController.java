@@ -2,6 +2,7 @@ package com.blossom.ecommerce.order.web;
 
 import com.blossom.ecommerce.auth.security.AuthenticatedUser;
 import com.blossom.ecommerce.common.dto.PageResponse;
+import com.blossom.ecommerce.order.domain.OrderStatus;
 import com.blossom.ecommerce.order.dto.CreateOrderRequest;
 import com.blossom.ecommerce.order.dto.OrderResponse;
 import com.blossom.ecommerce.order.dto.UpdateOrderStatusRequest;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -49,6 +51,14 @@ public class OrderController {
 	public PageResponse<OrderResponse> mine(@AuthenticationPrincipal AuthenticatedUser principal,
 			@ParameterObject @PageableDefault(size = 10) Pageable pageable) {
 		return orderService.findMine(principal.id(), pageable);
+	}
+
+	@GetMapping
+	@PreAuthorize("hasRole('ADMIN')")
+	@Operation(summary = "Lista todas las órdenes (ADMIN)", description = "Filtro opcional por estado; más recientes primero.")
+	public PageResponse<OrderResponse> list(@RequestParam(required = false) OrderStatus status,
+			@ParameterObject @PageableDefault(size = 20) Pageable pageable) {
+		return orderService.findAll(status, pageable);
 	}
 
 	@PostMapping("/{id}/cancel")

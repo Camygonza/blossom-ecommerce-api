@@ -119,6 +119,23 @@ class OrderLifecycleIntegrationTest extends ApiIntegrationTest {
 	}
 
 	@Test
+	void should_let_admin_list_all_orders_filtered_by_status_and_hide_them_from_customers() throws Exception {
+		long order = buy(newCustomerToken(), product(5), 1);
+		setStatus(order, "PAID").andExpect(status().isOk());
+
+		mvc.perform(get("/api/v1/orders").header(HttpHeaders.AUTHORIZATION, adminToken()).param("status", "PAID"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.content[0].id").value(order))
+			.andExpect(jsonPath("$.content[0].customerEmail").exists())
+			.andExpect(jsonPath("$.content[*].status", org.hamcrest.Matchers.everyItem(org.hamcrest.Matchers.is("PAID"))));
+		mvc.perform(get("/api/v1/orders").header(HttpHeaders.AUTHORIZATION, adminToken()))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.totalElements").value(org.hamcrest.Matchers.greaterThanOrEqualTo(1)));
+		mvc.perform(get("/api/v1/orders").header(HttpHeaders.AUTHORIZATION, customerToken())).andExpect(status().isForbidden());
+		mvc.perform(get("/api/v1/orders")).andExpect(status().isUnauthorized());
+	}
+
+	@Test
 	void should_restrict_status_changes_to_admin() throws Exception {
 		long order = buy(newCustomerToken(), product(5), 1);
 

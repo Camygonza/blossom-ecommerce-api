@@ -3,6 +3,7 @@ package com.blossom.ecommerce.order.service;
 import com.blossom.ecommerce.common.OptimisticRetry;
 import com.blossom.ecommerce.common.dto.PageResponse;
 import com.blossom.ecommerce.common.error.ResourceNotFoundException;
+import com.blossom.ecommerce.order.domain.Order;
 import com.blossom.ecommerce.order.domain.OrderStatus;
 import com.blossom.ecommerce.order.dto.CreateOrderRequest;
 import com.blossom.ecommerce.order.dto.OrderResponse;
@@ -50,6 +51,15 @@ public class OrderService {
 				Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id")));
 		Page<OrderResponse> page = orders.findByUserId(userId, sorted).map(mapper::toResponse);
 		return PageResponse.from(page);
+	}
+
+	/** Listado para administración: todas las órdenes (o las de un estado), las más recientes primero. */
+	@Transactional(readOnly = true)
+	public PageResponse<OrderResponse> findAll(OrderStatus status, Pageable pageable) {
+		Pageable sorted = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+				Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id")));
+		Page<Order> page = status == null ? orders.findAll(sorted) : orders.findByStatus(status, sorted);
+		return PageResponse.from(page.map(mapper::toResponse));
 	}
 
 	/** Una orden ajena responde 404 (igual que una inexistente) para no revelar su existencia. */
