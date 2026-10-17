@@ -121,10 +121,14 @@ public class ProductService {
 			physical.setWeightGrams(request.weightGrams());
 		}
 		else if (product instanceof DigitalProduct digital) {
-			if (request.downloadUrl() == null || request.downloadUrl().isBlank()) {
+			boolean blank = request.downloadUrl() == null || request.downloadUrl().isBlank();
+			if (blank && digital.getDownloadUrl() == null) {
 				throw new BadRequestException("Un producto digital requiere downloadUrl");
 			}
-			digital.setDownloadUrl(request.downloadUrl());
+			// el catálogo no expone downloadUrl: al editar, vacío significa «conservar el actual»
+			if (!blank) {
+				digital.setDownloadUrl(request.downloadUrl());
+			}
 			digital.setLicenseType(request.licenseType() != null ? request.licenseType() : LicenseType.PERSONAL);
 		}
 	}

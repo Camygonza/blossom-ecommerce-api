@@ -112,6 +112,20 @@ class ProductServiceTest {
 	}
 
 	@Test
+	void should_keep_current_download_url_when_updating_digital_product_without_one() {
+		DigitalProduct existing = new DigitalProduct();
+		existing.setDownloadUrl("https://downloads.bloom.test/original.pdf");
+		when(products.findById(6L)).thenReturn(Optional.of(existing));
+
+		service.update(6L, digital(null, LicenseType.COMMERCIAL));
+		assertThat(existing.getDownloadUrl()).isEqualTo("https://downloads.bloom.test/original.pdf");
+		assertThat(existing.getLicenseType()).isEqualTo(LicenseType.COMMERCIAL);
+
+		service.update(6L, digital("https://downloads.bloom.test/nuevo.pdf", null));
+		assertThat(existing.getDownloadUrl()).isEqualTo("https://downloads.bloom.test/nuevo.pdf");
+	}
+
+	@Test
 	void should_reject_update_with_stale_version() {
 		PhysicalProduct existing = new PhysicalProduct();
 		ReflectionTestUtils.setField(existing, "version", 3L);
