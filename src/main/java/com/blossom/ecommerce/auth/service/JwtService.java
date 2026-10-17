@@ -1,5 +1,6 @@
 package com.blossom.ecommerce.auth.service;
 
+import lombok.extern.slf4j.Slf4j;
 import com.blossom.ecommerce.auth.config.AuthProperties;
 import com.blossom.ecommerce.auth.security.AuthenticatedUser;
 import com.blossom.ecommerce.user.domain.Role;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
  * Emite y valida access tokens JWT (HS256, stateless).
  */
 @Service
+@Slf4j
 public class JwtService {
 
 	private static final String CLAIM_EMAIL = "email";
@@ -36,6 +38,9 @@ public class JwtService {
 		byte[] secret = properties.secret().getBytes(StandardCharsets.UTF_8);
 		if (secret.length < 32) {
 			throw new IllegalStateException("app.jwt.secret debe tener al menos 32 bytes para HS256");
+		}
+		if (properties.secret().startsWith("dev-only-secret")) {
+			log.warn("JWT_SECRET no configurado: se usa el secreto de desarrollo. NO desplegar así.");
 		}
 		this.key = Keys.hmacShaKeyFor(secret);
 		this.properties = properties;

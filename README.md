@@ -53,7 +53,20 @@ JaCoCo exige ≥ 80 % de líneas en el build (hoy ≈ 97 %). Informe: `target/si
 - Una orden ajena responde **404** (no revela que existe). El catálogo no expone `downloadUrl` de los productos digitales.
 - Notificación de órdenes mediante un puerto con un adaptador simulado que escribe en el log; `X-Request-Id` en logs y errores.
 
+## Retos
+
+- **Concurrencia en el stock:** el `@Version` evita vender de más, pero hacía fallar a compradores legítimos. Se movió la transacción a otro bean para reintentarla entera (cada intento relee el stock) y se probó con hilos contra PostgreSQL.
+- **Proxies de Hibernate con herencia:** al reponer stock, `OrderItem.product` es un proxy de la clase abstracta y `instanceof PhysicalProduct` fallaba; se resuelve con `Hibernate.unproxy`.
+- **Seguridad con ProblemDetail:** los 401/403 de los filtros no pasan por `@RestControllerAdvice`; se escriben con un handler propio para que todos los errores tengan el mismo formato.
+- **Búsqueda rápida:** `LIKE '%texto%'` no usa un btree; se midió con `EXPLAIN` y se resolvió con un índice de trigramas.
+- **Contrato estable:** una prueba compara `/v3/api-docs` con `docs/openapi.json`, así el front no se desalinea sin que el build lo note.
+
 ## Límites conocidos
+
+- El ADMIN cambia el estado de una orden por id (`PATCH /orders/{id}/status`) pero no tiene listado de órdenes ajenas; no está en el alcance de la prueba.
+- Quien compra un producto digital no recibe el `downloadUrl` en la respuesta: no hay pasarela de pago ni entrega.
+- `PUT /products/{id}` acepta `version` opcional; si se envía y no coincide responde 409 para no pisar cambios de otro admin.
+- Sin `JWT_SECRET` se usa un secreto de desarrollo (el arranque lo advierte en el log): hay que definirlo al desplegar.
 
 - El limitador de intentos de login está en memoria (una instancia); con réplicas habría que moverlo a un almacén compartido.
 - El borrado de productos es físico y se rechaza (409) si figuran en órdenes.

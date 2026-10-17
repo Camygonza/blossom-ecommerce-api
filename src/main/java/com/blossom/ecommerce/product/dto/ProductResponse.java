@@ -16,6 +16,7 @@ public record ProductResponse(
 		CategoryResponse category,
 		Integer stock,
 		Integer weightGrams,
-		LicenseType licenseType) {
+		LicenseType licenseType,
+		Long version) {
 
 }

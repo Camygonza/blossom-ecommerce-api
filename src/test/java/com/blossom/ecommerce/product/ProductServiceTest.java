@@ -62,11 +62,11 @@ class ProductServiceTest {
 	}
 
 	private ProductRequest physical(Integer stock, Integer weight) {
-		return new ProductRequest(ProductType.PHYSICAL, "  Cactus ", "d", new BigDecimal("5.00"), null, 1L, stock, weight, null, null);
+		return new ProductRequest(ProductType.PHYSICAL, "  Cactus ", "d", new BigDecimal("5.00"), null, 1L, stock, weight, null, null, null);
 	}
 
 	private ProductRequest digital(String url, LicenseType license) {
-		return new ProductRequest(ProductType.DIGITAL, "Guía", null, new BigDecimal("5.00"), null, 1L, null, null, url, license);
+		return new ProductRequest(ProductType.DIGITAL, "Guía", null, new BigDecimal("5.00"), null, 1L, null, null, url, license, null);
 	}
 
 	@Test
@@ -109,6 +109,20 @@ class ProductServiceTest {
 
 		assertThat(service.update(5L, physical(9, 9)).stock()).isEqualTo(9);
 		assertThatThrownBy(() -> service.update(5L, digital("https://x", null))).isInstanceOf(BadRequestException.class);
+	}
+
+	@Test
+	void should_reject_update_with_stale_version() {
+		PhysicalProduct existing = new PhysicalProduct();
+		ReflectionTestUtils.setField(existing, "version", 3L);
+		when(products.findById(5L)).thenReturn(Optional.of(existing));
+		ProductRequest stale = new ProductRequest(ProductType.PHYSICAL, "Cactus", null, new BigDecimal("5.00"), null, 1L, 1, 1,
+				null, null, 2L);
+		ProductRequest current = new ProductRequest(ProductType.PHYSICAL, "Cactus", null, new BigDecimal("5.00"), null, 1L, 1,
+				1, null, null, 3L);
+
+		assertThatThrownBy(() -> service.update(5L, stale)).isInstanceOf(ConflictException.class);
+		assertThat(service.update(5L, current).name()).isEqualTo("Cactus");
 	}
 
 	@Test

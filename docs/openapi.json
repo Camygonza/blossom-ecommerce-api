@@ -1003,6 +1003,7 @@
           },
           "price" : {
             "type" : "number",
+            "maximum" : 1000000.0,
             "minimum" : 0.0
           },
           "imageUrl" : {
@@ -1032,6 +1033,11 @@
           "licenseType" : {
             "type" : "string",
             "enum" : [ "PERSONAL", "COMMERCIAL" ]
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Opcional en PUT: versión leída; si no coincide con la actual responde 409 (evita pisar cambios)"
           }
         },
         "required" : [ "categoryId", "name", "price", "type" ]
@@ -1088,6 +1094,10 @@
           "licenseType" : {
             "type" : "string",
             "enum" : [ "PERSONAL", "COMMERCIAL" ]
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int64"
           }
         }
       },

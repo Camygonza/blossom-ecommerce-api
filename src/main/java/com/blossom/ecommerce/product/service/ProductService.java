@@ -76,6 +76,10 @@ public class ProductService {
 	@Transactional
 	public ProductResponse update(Long id, ProductRequest request) {
 		Product product = find(id);
+		if (request.version() != null && !request.version().equals(product.getVersion())) {
+			throw new ConflictException("El producto cambió desde que lo leíste (versión %d, actual %d); recárgalo"
+				.formatted(request.version(), product.getVersion()));
+		}
 		if (typeOf(product) != request.type()) {
 			throw new BadRequestException("El tipo de un producto no se puede cambiar");
 		}
