@@ -1,6 +1,6 @@
 -- Búsqueda de productos (GET /products): el LIKE '%texto%' sobre LOWER(name) no puede usar un btree;
 -- un índice GIN de trigramas sí. El compuesto sirve al filtro categoría + rango de precio.
--- Evidencia con EXPLAIN en entregas/sql/ (hub).
+-- La medición con EXPLAIN está resumida en docs/decisiones.md (D18).
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 CREATE INDEX idx_products_name_trgm ON products USING gin (LOWER(name) gin_trgm_ops);

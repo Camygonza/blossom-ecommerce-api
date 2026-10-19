@@ -77,7 +77,7 @@ Los errores son `application/problem+json` (RFC 7807) con `requestId`; los de va
 - Una orden ajena responde **404** (no revela que existe). El catálogo no expone `downloadUrl` de los productos digitales.
 - Notificación de órdenes mediante un puerto con un adaptador simulado que escribe en el log; `X-Request-Id` en logs y errores.
 
-Cada decisión con su alternativa descartada está en [`docs/decisiones.md`](docs/decisiones.md) (D1–D22).
+Cada decisión con su alternativa descartada está en [`docs/decisiones.md`](docs/decisiones.md).
 
 ## Retos
 

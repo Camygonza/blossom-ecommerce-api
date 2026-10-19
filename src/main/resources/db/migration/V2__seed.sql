@@ -1,4 +1,4 @@
--- Datos de demostración (solo desarrollo). Credenciales en knowledge/decisiones.md.
+-- Datos de demostración (solo desarrollo). Credenciales en docs/decisiones.md (D10).
 INSERT INTO users (email, password_hash, full_name, role, created_at, updated_at) VALUES
   ('admin@bloom.test', '$2a$10$RbFDYcvhjf2fsRErj4IS0eLfXZT2AX61K36fxlYdC30jmjCv6nO4C', 'Admin Bloom', 'ADMIN', now(), now()),
   ('cliente@bloom.test', '$2a$10$vj/AOG4TBBMqMLSClUQsBeSSt0yl6fECmGsPMTSJdyCCnnJfUtKia', 'Cliente Demo', 'CUSTOMER', now(), now());
