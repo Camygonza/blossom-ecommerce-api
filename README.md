@@ -19,6 +19,17 @@ docker compose up --build
 - Tienda: <http://localhost:3000> · Swagger UI: <http://localhost:8080/swagger-ui.html>
 - Los secretos son obligatorios: `docker compose` falla si faltan. `.env` no se versiona.
 
+
+### En Render (despliegue en la nube)
+
+El repositorio trae un Blueprint ([`render.yaml`](render.yaml)) que crea PostgreSQL, la API y el web (este se construye desde su propio repositorio):
+
+1. En [render.com](https://render.com): **New → Blueprint**, conecta GitHub y elige este repositorio (la cuenta de GitHub necesita acceso a este y al del web).
+2. Render crea `bloom-db`, `bloom-api` y `bloom-web`; `JWT_SECRET` se genera solo y `DATABASE_URL` llega desde la base de datos (el arranque la convierte a JDBC).
+3. La tienda queda en `https://bloom-web.onrender.com` (si un nombre está ocupado, cámbialo en `render.yaml`, también en `API_UPSTREAM`, `API_HOST` y `CORS_ALLOWED_ORIGINS`).
+
+Notas del plan gratuito: los servicios se duermen tras 15 minutos sin tráfico (la primera visita tarda cerca de un minuto) y la base de datos gratuita caduca a los 30 días. Los datos de demostración del seed incluyen las cuentas de la tabla anterior.
+
 ### Local (sin Docker para la API)
 
 Requisitos: JDK 21 y Docker (para PostgreSQL y para los tests).

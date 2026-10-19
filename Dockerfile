@@ -12,7 +12,9 @@ FROM eclipse-temurin:21-jre
 RUN useradd --system --uid 10001 bloom
 WORKDIR /app
 COPY --from=build /workspace/target/ecommerce-api-*.jar app.jar
+COPY --chmod=755 docker-entrypoint.sh /app/docker-entrypoint.sh
 USER bloom
 EXPOSE 8080
-ENV JAVA_OPTS="-XX:MaxRAMPercentage=75"
-ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /app/app.jar"]
+# memoria acotada para planes pequeños (512 MB); se puede sobrescribir con JAVA_OPTS
+ENV JAVA_OPTS="-XX:MaxRAMPercentage=65 -XX:+UseSerialGC -XX:TieredStopAtLevel=1 -Xss512k"
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
