@@ -55,7 +55,7 @@ Usuarios de demostración (solo desarrollo, vienen en el seed; cámbialos o elim
 | GET | `/orders` (filtro `status`) | ADMIN |
 | PATCH | `/orders/{id}/status` | ADMIN |
 
-Los errores son `application/problem+json` (RFC 7807) con `requestId`; los de validación añaden `errors` (campo → mensaje). Hay una colección de Postman con todas las rutas en `entregas/postman/` del hub del proyecto.
+Los errores son `application/problem+json` (RFC 7807) con `requestId`; los de validación añaden `errors` (campo → mensaje). La colección de Postman con todas las rutas se entrega aparte (carpeta de evidencias).
 
 ## Tests y calidad
 
@@ -71,13 +71,13 @@ Los errores son `application/problem+json` (RFC 7807) con `requestId`; los de va
 
 - **Herencia JOINED** (`Product` → `PhysicalProduct` / `DigitalProduct`) y **`OrderItem`** como entidad (cantidad y precio congelado) en vez de `@ManyToMany`.
 - **JWT stateless**: access de 15 min + refresh opaco con rotación y detección de reuso (hash en BD); rate limit y bloqueo temporal en login.
-- **Búsqueda** con `JpaSpecificationExecutor`; paginación acotada (`size ≤ 50`) y orden con lista blanca. Índice de trigramas para `LIKE '%texto%'`: de ~60 ms a ~0,25 ms con 200 000 filas (`EXPLAIN` en `entregas/sql/` del hub).
+- **Búsqueda** con `JpaSpecificationExecutor`; paginación acotada (`size ≤ 50`) y orden con lista blanca. Índice de trigramas para `LIKE '%texto%'`: de ~60 ms a ~0,25 ms con 200 000 filas (medido con `EXPLAIN` sobre 200 000 filas de prueba).
 - **Sin sobreventa**: `@Version` en `Product` más reintento de la transacción ante conflicto; probado con hilos.
 - **Estados de la orden** acotados (`PENDING → PAID → SHIPPED → DELIVERED`, cancelación antes del envío con reposición de stock). No hay pasarela de pago: `PAID` lo marca un administrador.
 - Una orden ajena responde **404** (no revela que existe). El catálogo no expone `downloadUrl` de los productos digitales.
 - Notificación de órdenes mediante un puerto con un adaptador simulado que escribe en el log; `X-Request-Id` en logs y errores.
 
-Cada decisión con su alternativa descartada está en `knowledge/decisiones.md` del hub (D1–D22).
+Cada decisión con su alternativa descartada está en [`docs/decisiones.md`](docs/decisiones.md) (D1–D22).
 
 ## Retos
 
