@@ -1,3 +1,7 @@
+server:
+  # detrás de nginx: la IP real del cliente (rate limit de login) sale de X-Forwarded-For, solo si el proxy es interno
+  forward-headers-strategy: native
+
 spring:
   application:
     name: ecommerce-api
