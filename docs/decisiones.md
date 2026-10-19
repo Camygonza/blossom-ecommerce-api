@@ -118,3 +118,8 @@ Plantilla: **Contexto** · **Decisión** · **Alternativa descartada** · **Cons
 ## D22 — Listado de órdenes para ADMIN
 - `GET /orders` (solo ADMIN, paginado, `status` opcional, `createdAt desc, id desc`) cierra el hueco que dejó D15 (el admin cambiaba estados a ciegas). Su `@PreAuthorize` de método sustituye al de clase (CUSTOMER). `OrderResponse.customerEmail` identifica al cliente.
 - Un ADMIN sigue sin poder ver el detalle `/orders/{id}` de otros (solo el dueño); el listado ya trae los ítems.
+
+## D23 — Precios en COP, fotos reales e idioma (ES/EN)
+- Moneda única: **peso colombiano**, sin decimales (`Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' })`). Los precios del seed (V8) están en pesos y las órdenes existentes se escalan ×4000; el idioma no cambia la moneda. Descartado: selector de moneda (exigiría tasas de cambio y conversión en el api).
+- Fotos reales: el seed apunta a `/products/NN.jpg` (servidas por el web, V6) y los nombres son los comunes de una tienda de plantas (V7). Si la foto falla o `imageUrl` es nulo, se muestra una ilustración SVG de respaldo.
+- Idioma: español por defecto o el del navegador, selector en la cabecera, preferencia en `localStorage` (`bloom.lang`), sin librería externa. El texto en español es la clave del diccionario `en.ts` y una prueba comprueba que no falte ninguna traducción. Los nombres y descripciones del seed se traducen con `productsEn.ts`; los productos creados desde administración y los mensajes de error del api se muestran como llegan (español). Con más tiempo: columnas `name_en`/`description_en` y `Accept-Language` en el api.

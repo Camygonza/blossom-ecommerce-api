@@ -41,7 +41,7 @@ docker run -d --name bloom-db -p 5432:5432 -e POSTGRES_DB=bloom -e POSTGRES_USER
 ./mvnw spring-boot:run
 ```
 
-Flyway crea el esquema y carga datos de demostración (30 productos, 5 categorías). Variables opcionales: `DB_URL`, `DB_USER`, `DB_PASSWORD`, `JWT_SECRET`, `CORS_ALLOWED_ORIGINS`, `LOGIN_RATE_LIMIT_MAX` (los valores por defecto sirven solo para desarrollo).
+Flyway crea el esquema y carga datos de demostración (30 productos con nombres comunes, fotos servidas por el web y precios en pesos colombianos, 5 categorías). Variables opcionales: `DB_URL`, `DB_USER`, `DB_PASSWORD`, `JWT_SECRET`, `CORS_ALLOWED_ORIGINS`, `LOGIN_RATE_LIMIT_MAX` (los valores por defecto sirven solo para desarrollo).
 
 - Swagger UI: <http://localhost:8080/swagger-ui.html> (botón **Authorize** con el access token)
 - Contrato OpenAPI: `GET /v3/api-docs` · copia fijada en [`docs/openapi.json`](docs/openapi.json)
