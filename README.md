@@ -3,6 +3,8 @@
 API REST del e-commerce **Bloom** (plantas, flores y guías digitales): usuarios, productos y órdenes.
 Java 21 · Spring Boot 4 · PostgreSQL 16 · Flyway · Spring Security + JWT · springdoc (OpenAPI).
 
+> **Demo en línea:** https://bloom-web-ah8o.onrender.com (plan gratuito: la primera visita puede tardar cerca de un minuto en despertar). Cuentas demo más abajo.
+
 El frontend vive en el repo hermano [`blossom-ecommerce-web`](https://github.com/Camygonza/blossom-ecommerce-web).
 
 ## Cómo correrla
