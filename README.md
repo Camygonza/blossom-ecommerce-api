@@ -78,17 +78,17 @@ Cada una está con su alternativa descartada en [docs/decisiones.md](docs/decisi
 
 - Productos físicos y digitales comparten una tabla base con herencia JOINED. `OrderItem` es una entidad propia, para guardar la cantidad y el precio del momento de la compra, en lugar de un `@ManyToMany`.
 - Autenticación con JWT: access token de 15 minutos y refresh token opaco que rota en cada uso. Si alguien reusa un refresh ya cambiado, se revoca toda la sesión. El login tiene límite de intentos y bloqueo temporal.
-- La búsqueda usa `JpaSpecificationExecutor`, con tamaño de página máximo de 50 y orden solo por columnas permitidas. Para `LIKE '%texto%'` agregué un índice de trigramas: con 200 000 filas de prueba, la consulta pasó de unos 60 ms a unos 0,25 ms.
-- Para no vender de más uso `@Version` en el producto y reintento la transacción si hay conflicto. Lo probé con hilos.
+- La búsqueda usa `JpaSpecificationExecutor`, con tamaño de página máximo de 50 y orden solo por columnas permitidas. Para `LIKE '%texto%'` se agregó un índice de trigramas: con 200 000 filas de prueba, la consulta pasó de unos 60 ms a unos 0,25 ms.
+- Para no vender de más se usa `@Version` en el producto y se reintenta la transacción si hay conflicto. Está probado con hilos.
 - Las órdenes pasan por `PENDING`, `PAID`, `SHIPPED` y `DELIVERED`, y se pueden cancelar antes del envío. No hay pasarela de pago, así que un administrador marca la orden como pagada.
 - Pedir una orden ajena responde 404, para no revelar que existe. El catálogo no expone el `downloadUrl` de los productos digitales.
 - Al crear una orden se publica un evento que un adaptador escribe en el log (simula el correo). Cada petición lleva un `X-Request-Id` que aparece en los logs y en los errores.
 
 ## Dificultades
 
-- Con `@Version` solo, dos compras simultáneas del mismo producto hacían fallar a una de ellas aunque hubiera stock. Moví la transacción a otro bean para poder reintentarla completa, releyendo el stock en cada intento.
-- Al devolver el stock de una orden cancelada, `OrderItem.product` llegaba como proxy de Hibernate de la clase abstracta y `instanceof PhysicalProduct` fallaba. Lo resolví con `Hibernate.unproxy`.
-- Los 401 y 403 salen de los filtros de seguridad y no pasan por `@RestControllerAdvice`, así que escribí un handler propio para que todos los errores tengan el mismo formato.
+- Con `@Version` solo, dos compras simultáneas del mismo producto hacían fallar a una de ellas aunque hubiera stock. Se movió la transacción a otro bean para poder reintentarla completa, releyendo el stock en cada intento.
+- Al devolver el stock de una orden cancelada, `OrderItem.product` llegaba como proxy de Hibernate de la clase abstracta y `instanceof PhysicalProduct` fallaba. Se resuelve con `Hibernate.unproxy`.
+- Los 401 y 403 salen de los filtros de seguridad y no pasan por `@RestControllerAdvice`, así que se escribió un handler propio para que todos los errores tengan el mismo formato.
 - Detrás de nginx el límite de intentos de login veía a todos con la misma IP. Con `server.forward-headers-strategy=native` toma `X-Forwarded-For` solo de proxies internos.
 
 ## Pendientes y qué haría con más tiempo
