@@ -1,7 +1,7 @@
 # Blueprint de Render: PostgreSQL + API + Web (el web se construye desde su propio repositorio).
 # Despliegue: Render → New → Blueprint → elegir este repositorio. Ver «Despliegue en Render» en el README.
-# Los nombres (bloom-api, bloom-web) deben ser únicos en Render; si alguno está tomado, cámbialo aquí y
-# en API_UPSTREAM / API_HOST / CORS_ALLOWED_ORIGINS.
+# Render añade un sufijo al dominio si el nombre está tomado (aquí bloom-api-fx8a y bloom-web-ah8o). Si se recrea el
+# Blueprint, actualiza esas URLs en API_UPSTREAM, API_HOST y CORS_ALLOWED_ORIGINS.
 databases:
   - name: bloom-db
     plan: free
@@ -24,7 +24,7 @@ services:
       - key: JWT_SECRET
         generateValue: true
       - key: CORS_ALLOWED_ORIGINS
-        value: https://bloom-web.onrender.com
+        value: https://bloom-web-ah8o.onrender.com
       # el web llega con una IP de la plataforma: el límite por IP se sube para que varios evaluadores no se bloqueen
       - key: LOGIN_RATE_LIMIT_MAX
         value: "300"
@@ -36,6 +36,6 @@ services:
     repo: https://github.com/Camygonza/blossom-ecommerce-web
     envVars:
       - key: API_UPSTREAM
-        value: https://bloom-api.onrender.com
+        value: https://bloom-api-fx8a.onrender.com
       - key: API_HOST
-        value: bloom-api.onrender.com
+        value: bloom-api-fx8a.onrender.com

@@ -26,7 +26,7 @@ El repositorio trae un Blueprint ([`render.yaml`](render.yaml)) que crea Postgre
 
 1. En [render.com](https://render.com): **New → Blueprint**, conecta GitHub y elige este repositorio (la cuenta de GitHub necesita acceso a este y al del web).
 2. Render crea `bloom-db`, `bloom-api` y `bloom-web`; `JWT_SECRET` se genera solo y `DATABASE_URL` llega desde la base de datos (el arranque la convierte a JDBC).
-3. La tienda queda en `https://bloom-web.onrender.com` (si un nombre está ocupado, cámbialo en `render.yaml`, también en `API_UPSTREAM`, `API_HOST` y `CORS_ALLOWED_ORIGINS`).
+3. La tienda queda en https://bloom-web-ah8o.onrender.com y la API en https://bloom-api-fx8a.onrender.com (Render añade un sufijo si el nombre está ocupado; si recreas el Blueprint, actualiza esas URLs en `render.yaml`).
 
 Notas del plan gratuito: los servicios se duermen tras 15 minutos sin tráfico (la primera visita tarda cerca de un minuto) y la base de datos gratuita caduca a los 30 días. Los datos de demostración del seed incluyen las cuentas de la tabla anterior.
 
