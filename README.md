@@ -1,112 +1,102 @@
-# Bloom · API
+# Bloom API
 
-API REST del e-commerce **Bloom** (plantas, flores y guías digitales): usuarios, productos y órdenes.
-Java 21 · Spring Boot 4 · PostgreSQL 16 · Flyway · Spring Security + JWT · springdoc (OpenAPI).
+API REST de Bloom, una tienda en línea de plantas, flores y guías digitales. Maneja usuarios, productos y órdenes.
 
-> **Demo en línea:** https://bloom-web-ah8o.onrender.com (plan gratuito: la primera visita puede tardar cerca de un minuto en despertar). Cuentas demo más abajo.
+Está hecha con Java 21, Spring Boot 4, PostgreSQL 16, Flyway, Spring Security con JWT y springdoc para la documentación OpenAPI. El frontend está en el repo [blossom-ecommerce-web](https://github.com/Camygonza/blossom-ecommerce-web).
 
-El frontend vive en el repo hermano [`blossom-ecommerce-web`](https://github.com/Camygonza/blossom-ecommerce-web).
+Hay una versión desplegada en https://bloom-web-ah8o.onrender.com. Como corre en el plan gratuito de Render, la primera visita tarda cerca de un minuto en responder.
 
 ## Cómo correrla
 
-### Con Docker (PostgreSQL + API + Web)
+### Con Docker
 
-Clona los dos repos uno junto al otro y, desde este:
+Clona este repo y el del web en la misma carpeta y, desde este:
 
 ```bash
-cp env.ejemplo .env        # y cambia DB_PASSWORD y JWT_SECRET
+cp env.ejemplo .env     # cambia DB_PASSWORD y JWT_SECRET
 docker compose up --build
 ```
 
-- Tienda: <http://localhost:3000> · Swagger UI: <http://localhost:8080/swagger-ui.html>
-- Los secretos son obligatorios: `docker compose` falla si faltan. `.env` no se versiona.
+La tienda queda en http://localhost:3000 y Swagger en http://localhost:8080/swagger-ui.html. Los dos secretos son obligatorios (compose falla si faltan) y `.env` no se sube al repo.
 
+### Sin Docker para la API
 
-### En Render (despliegue en la nube)
-
-El repositorio trae un Blueprint ([`render.yaml`](render.yaml)) que crea PostgreSQL, la API y el web (este se construye desde su propio repositorio):
-
-1. En [render.com](https://render.com): **New → Blueprint**, conecta GitHub y elige este repositorio (la cuenta de GitHub necesita acceso a este y al del web).
-2. Render crea `bloom-db`, `bloom-api` y `bloom-web`; `JWT_SECRET` se genera solo y `DATABASE_URL` llega desde la base de datos (el arranque la convierte a JDBC).
-3. La tienda queda en https://bloom-web-ah8o.onrender.com y la API en https://bloom-api-fx8a.onrender.com (Render añade un sufijo si el nombre está ocupado; si recreas el Blueprint, actualiza esas URLs en `render.yaml`).
-
-Notas del plan gratuito: los servicios se duermen tras 15 minutos sin tráfico (la primera visita tarda cerca de un minuto) y la base de datos gratuita caduca a los 30 días. Los datos de demostración del seed incluyen las cuentas de la tabla anterior.
-
-### Local (sin Docker para la API)
-
-Requisitos: JDK 21 y Docker (para PostgreSQL y para los tests).
+Necesitas JDK 21 y Docker (para PostgreSQL y para los tests).
 
 ```bash
 docker run -d --name bloom-db -p 5432:5432 -e POSTGRES_DB=bloom -e POSTGRES_USER=bloom -e POSTGRES_PASSWORD=bloom postgres:16-alpine
 ./mvnw spring-boot:run
 ```
 
-Flyway crea el esquema y carga datos de demostración (30 productos con nombres comunes, fotos servidas por el web y precios en pesos colombianos, 5 categorías). Variables opcionales: `DB_URL`, `DB_USER`, `DB_PASSWORD`, `JWT_SECRET`, `CORS_ALLOWED_ORIGINS`, `LOGIN_RATE_LIMIT_MAX` (los valores por defecto sirven solo para desarrollo).
+Flyway crea las tablas y carga datos de ejemplo: 5 categorías y 30 productos con precios en pesos colombianos. Se pueden cambiar `DB_URL`, `DB_USER`, `DB_PASSWORD`, `JWT_SECRET`, `CORS_ALLOWED_ORIGINS` y `LOGIN_RATE_LIMIT_MAX`; los valores por defecto son solo para desarrollo.
 
-- Swagger UI: <http://localhost:8080/swagger-ui.html> (botón **Authorize** con el access token)
-- Contrato OpenAPI: `GET /v3/api-docs` · copia fijada en [`docs/openapi.json`](docs/openapi.json)
+El contrato OpenAPI se sirve en `/v3/api-docs` y hay una copia en [docs/openapi.json](docs/openapi.json). En Swagger UI se usa el botón Authorize con el access token.
 
-Usuarios de demostración (solo desarrollo, vienen en el seed; cámbialos o elimínalos fuera de desarrollo):
+### Usuarios de ejemplo
+
+Vienen en el seed para poder probar sin registrarse.
 
 | Rol | Correo | Contraseña |
 |---|---|---|
-| ADMIN | `admin@bloom.test` | `Admin123!` |
-| CUSTOMER | `cliente@bloom.test` | `Cliente123!` |
+| Administrador | admin@bloom.test | Admin123! |
+| Cliente | cliente@bloom.test | Cliente123! |
 
-## Endpoints (`/api/v1`)
+### Despliegue en Render
 
-| Método | Ruta | Acceso |
+[render.yaml](render.yaml) describe la base de datos, la API y el web. Se crea desde Render con New > Blueprint, conectando este repo (la cuenta de GitHub debe tener acceso también al del web). `JWT_SECRET` se genera solo y la URL de la base llega como `DATABASE_URL`, que el script de arranque convierte a JDBC. Con el plan gratuito los servicios se duermen a los 15 minutos sin tráfico y la base de datos caduca a los 30 días.
+
+## Endpoints
+
+Todos cuelgan de `/api/v1`.
+
+| Método | Ruta | Quién |
 |---|---|---|
 | POST | `/auth/register`, `/auth/login`, `/auth/refresh`, `/auth/logout` | Público |
-| GET | `/users/me` | Autenticado |
-| GET | `/products` (`name`, `categoryId`, `minPrice`, `maxPrice`, `page`, `size`, `sort`) | Público |
+| GET | `/users/me` | Usuario autenticado |
+| GET | `/products` (filtros `name`, `categoryId`, `minPrice`, `maxPrice`; `page`, `size`, `sort`) | Público |
 | GET | `/products/{id}`, `/categories` | Público |
-| POST · PUT · DELETE | `/products`, `/products/{id}` | ADMIN |
-| POST | `/orders` | CUSTOMER |
-| GET | `/orders/me`, `/orders/{id}` (solo el dueño) | CUSTOMER |
-| POST | `/orders/{id}/cancel` (solo `PENDING`, repone stock) | CUSTOMER |
-| GET | `/orders` (filtro `status`) | ADMIN |
-| PATCH | `/orders/{id}/status` | ADMIN |
+| POST, PUT, DELETE | `/products`, `/products/{id}` | Administrador |
+| POST | `/orders` | Cliente |
+| GET | `/orders/me`, `/orders/{id}` (solo la dueña o el dueño) | Cliente |
+| POST | `/orders/{id}/cancel` (solo órdenes pendientes, devuelve el stock) | Cliente |
+| GET | `/orders` (filtro `status`) | Administrador |
+| PATCH | `/orders/{id}/status` | Administrador |
 
-Los errores son `application/problem+json` (RFC 7807) con `requestId`; los de validación añaden `errors` (campo → mensaje). La colección de Postman con todas las rutas se entrega aparte (carpeta de evidencias).
+Los errores siguen el formato `application/problem+json` (RFC 7807) e incluyen un `requestId`; los de validación traen además un `errors` con el mensaje de cada campo. La colección de Postman con todas las rutas va en la carpeta de entregas.
 
-## Tests y calidad
+## Tests
 
 ```bash
-./mvnw verify   # unitarios (Mockito), MockMvc y repositorios contra PostgreSQL real (Testcontainers)
+./mvnw verify
 ```
 
-- 140 tests; JaCoCo exige ≥ 80 % de líneas en el build (hoy ≈ 97 %). Informe: `target/site/jacoco/index.html`.
-- Una prueba de contrato falla si la API cambia sin regenerar `docs/openapi.json` (`./mvnw test -Dtest=OpenApiContractTest -Dopenapi.update=true`).
-- CI (GitHub Actions): `verify` + construcción de la imagen. Los E2E del frontend corren contra este mismo `docker compose`.
+Son 140 tests: unitarios con Mockito, de controladores con MockMvc y de repositorios contra un PostgreSQL real con Testcontainers. El build exige un 80 % de cobertura de líneas con JaCoCo y hoy está cerca del 97 % (informe en `target/site/jacoco/index.html`). Un test de contrato falla si la API cambia sin actualizar `docs/openapi.json`; para regenerarlo: `./mvnw test -Dtest=OpenApiContractTest -Dopenapi.update=true`. El CI de GitHub Actions corre `verify` y construye la imagen.
 
 ## Decisiones de diseño
 
-- **Herencia JOINED** (`Product` → `PhysicalProduct` / `DigitalProduct`) y **`OrderItem`** como entidad (cantidad y precio congelado) en vez de `@ManyToMany`.
-- **JWT stateless**: access de 15 min + refresh opaco con rotación y detección de reuso (hash en BD); rate limit y bloqueo temporal en login.
-- **Búsqueda** con `JpaSpecificationExecutor`; paginación acotada (`size ≤ 50`) y orden con lista blanca. Índice de trigramas para `LIKE '%texto%'`: de ~60 ms a ~0,25 ms con 200 000 filas (medido con `EXPLAIN` sobre 200 000 filas de prueba).
-- **Sin sobreventa**: `@Version` en `Product` más reintento de la transacción ante conflicto; probado con hilos.
-- **Estados de la orden** acotados (`PENDING → PAID → SHIPPED → DELIVERED`, cancelación antes del envío con reposición de stock). No hay pasarela de pago: `PAID` lo marca un administrador.
-- Una orden ajena responde **404** (no revela que existe). El catálogo no expone `downloadUrl` de los productos digitales.
-- Notificación de órdenes mediante un puerto con un adaptador simulado que escribe en el log; `X-Request-Id` en logs y errores.
+Cada una está con su alternativa descartada en [docs/decisiones.md](docs/decisiones.md). Las principales:
 
-Cada decisión con su alternativa descartada está en [`docs/decisiones.md`](docs/decisiones.md).
+- Productos físicos y digitales comparten una tabla base con herencia JOINED. `OrderItem` es una entidad propia, para guardar la cantidad y el precio del momento de la compra, en lugar de un `@ManyToMany`.
+- Autenticación con JWT: access token de 15 minutos y refresh token opaco que rota en cada uso. Si alguien reusa un refresh ya cambiado, se revoca toda la sesión. El login tiene límite de intentos y bloqueo temporal.
+- La búsqueda usa `JpaSpecificationExecutor`, con tamaño de página máximo de 50 y orden solo por columnas permitidas. Para `LIKE '%texto%'` agregué un índice de trigramas: con 200 000 filas de prueba, la consulta pasó de unos 60 ms a unos 0,25 ms.
+- Para no vender de más uso `@Version` en el producto y reintento la transacción si hay conflicto. Lo probé con hilos.
+- Las órdenes pasan por `PENDING`, `PAID`, `SHIPPED` y `DELIVERED`, y se pueden cancelar antes del envío. No hay pasarela de pago, así que un administrador marca la orden como pagada.
+- Pedir una orden ajena responde 404, para no revelar que existe. El catálogo no expone el `downloadUrl` de los productos digitales.
+- Al crear una orden se publica un evento que un adaptador escribe en el log (simula el correo). Cada petición lleva un `X-Request-Id` que aparece en los logs y en los errores.
 
-## Retos
+## Dificultades
 
-- **Concurrencia en el stock:** el `@Version` evita vender de más, pero hacía fallar a compradores legítimos. Se movió la transacción a otro bean para reintentarla entera (cada intento relee el stock) y se probó con hilos contra PostgreSQL.
-- **Proxies de Hibernate con herencia:** al reponer stock, `OrderItem.product` es un proxy de la clase abstracta y `instanceof PhysicalProduct` fallaba; se resuelve con `Hibernate.unproxy`.
-- **Seguridad con ProblemDetail:** los 401/403 de los filtros no pasan por `@RestControllerAdvice`; se escriben con un handler propio para que todos los errores tengan el mismo formato.
-- **Búsqueda rápida:** `LIKE '%texto%'` no usa un btree; se midió con `EXPLAIN` y se resolvió con un índice de trigramas.
-- **Contrato estable:** una prueba compara `/v3/api-docs` con `docs/openapi.json`, así el front no se desalinea sin que el build lo note.
-- **IP real tras el proxy:** con nginx delante, el rate limit veía a todos como una sola IP; `server.forward-headers-strategy=native` toma `X-Forwarded-For` solo de proxies internos.
+- Con `@Version` solo, dos compras simultáneas del mismo producto hacían fallar a una de ellas aunque hubiera stock. Moví la transacción a otro bean para poder reintentarla completa, releyendo el stock en cada intento.
+- Al devolver el stock de una orden cancelada, `OrderItem.product` llegaba como proxy de Hibernate de la clase abstracta y `instanceof PhysicalProduct` fallaba. Lo resolví con `Hibernate.unproxy`.
+- Los 401 y 403 salen de los filtros de seguridad y no pasan por `@RestControllerAdvice`, así que escribí un handler propio para que todos los errores tengan el mismo formato.
+- Detrás de nginx el límite de intentos de login veía a todos con la misma IP. Con `server.forward-headers-strategy=native` toma `X-Forwarded-For` solo de proxies internos.
 
-## Límites conocidos y qué haría con más tiempo
+## Pendientes y qué haría con más tiempo
 
-- El limitador de intentos de login está en memoria (una instancia); con réplicas habría que moverlo a un almacén compartido (Redis).
-- El borrado de productos es físico y se rechaza (409) si figuran en órdenes; un borrado lógico sería lo siguiente si hace falta conservarlos.
-- Con más de 5 compras simultáneas del mismo producto el reintento puede agotarse y responder 409; un `UPDATE … SET stock = stock - ? WHERE stock >= ?` atómico lo evitaría.
-- Sin pasarela de pago ni correo real (la notificación es un adaptador simulado): son los puntos de extensión naturales.
-- Quien compra un producto digital no recibe el `downloadUrl` en la respuesta: haría falta un endpoint de descarga autorizado.
-- Despliegue: el compose es para desarrollo/demostración; en producción irían secretos gestionados, TLS delante y las credenciales demo del seed eliminadas.
-- El ADMIN cambia el estado de una orden por id desde el listado, pero no ve el detalle de órdenes ajenas.
+- El límite de intentos de login vive en memoria, así que solo sirve con una instancia. Con varias habría que moverlo a Redis.
+- El borrado de productos es físico y devuelve 409 si el producto ya está en una orden. Un borrado lógico conservaría el historial.
+- Con más de 5 compras simultáneas del mismo producto el reintento puede agotarse. Un `UPDATE ... SET stock = stock - ? WHERE stock >= ?` atómico lo evitaría.
+- Falta una pasarela de pago, correo real y un endpoint de descarga autorizada para los productos digitales.
+- Los administradores no pueden ver el detalle de órdenes ajenas; solo cambian su estado desde el listado.
+- Los nombres y descripciones de producto se guardan solo en español. Para tenerlos en inglés habría que agregar columnas por idioma y leer `Accept-Language`.
+- En producción irían secretos gestionados, TLS y sin los usuarios de ejemplo del seed.
