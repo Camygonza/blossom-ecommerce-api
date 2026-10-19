@@ -49,10 +49,10 @@ class ProductCatalogIntegrationTest extends ApiIntegrationTest {
 
 	@Test
 	void should_filter_by_name_ignoring_case() throws Exception {
-		mvc.perform(get("/api/v1/products").param("name", "MONSTERA"))
+		mvc.perform(get("/api/v1/products").param("name", "COSTILLA"))
 			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.content[*].name", hasItem("Monstera Deliciosa")))
-			.andExpect(jsonPath("$.content[*].name", everyItem(containsString("Monstera"))));
+			.andExpect(jsonPath("$.content[*].name", hasItem("Costilla de Adán")))
+			.andExpect(jsonPath("$.content[*].name", everyItem(containsString("Costilla"))));
 	}
 
 	@Test
@@ -63,19 +63,19 @@ class ProductCatalogIntegrationTest extends ApiIntegrationTest {
 	@Test
 	void should_filter_by_category_and_price_range_and_sort() throws Exception {
 		mvc.perform(get("/api/v1/products").param("categoryId", "1")
-			.param("minPrice", "25")
-			.param("maxPrice", "50")
+			.param("minPrice", "25000")
+			.param("maxPrice", "60000")
 			.param("sort", "price,desc"))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.content[*].category.id", everyItem(is(1))))
-			.andExpect(jsonPath("$.content[*].price", everyItem(greaterThanOrEqualTo(25.0))))
-			.andExpect(jsonPath("$.content[*].price", everyItem(lessThanOrEqualTo(50.0))))
-			.andExpect(jsonPath("$.content[0].price").value(45.9));
+			.andExpect(jsonPath("$.content[*].price", everyItem(greaterThanOrEqualTo(25000.0))))
+			.andExpect(jsonPath("$.content[*].price", everyItem(lessThanOrEqualTo(60000.0))))
+			.andExpect(jsonPath("$.content[0].price").value(58900.0));
 	}
 
 	@Test
 	void should_reject_inverted_price_range_and_unknown_sort_with_400() throws Exception {
-		mvc.perform(get("/api/v1/products").param("minPrice", "50").param("maxPrice", "10"))
+		mvc.perform(get("/api/v1/products").param("minPrice", "50000").param("maxPrice", "10000"))
 			.andExpect(status().isBadRequest())
 			.andExpect(header().string(HttpHeaders.CONTENT_TYPE, containsString("application/problem+json")));
 		mvc.perform(get("/api/v1/products").param("sort", "password,asc")).andExpect(status().isBadRequest());

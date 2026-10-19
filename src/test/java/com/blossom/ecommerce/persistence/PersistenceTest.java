@@ -68,7 +68,7 @@ class PersistenceTest {
 		List<Product> all = products.findAll();
 		assertThat(all).hasAtLeastOneElementOfType(PhysicalProduct.class);
 		assertThat(all).hasAtLeastOneElementOfType(DigitalProduct.class);
-		assertThat(all).allSatisfy(p -> assertThat(p.getImageUrl()).startsWith("https://images.unsplash.com/"));
+		assertThat(all).allSatisfy(p -> assertThat(p.getImageUrl()).startsWith("/products/"));
 	}
 
 	@Test
@@ -133,12 +133,12 @@ class PersistenceTest {
 
 	@Test
 	void should_filter_products_when_using_specifications() {
-		Specification<Product> cheap = (root, q, cb) -> cb.lessThanOrEqualTo(root.get("price"), new BigDecimal("10.00"));
-		Specification<Product> named = (root, q, cb) -> cb.like(cb.lower(root.get("name")), "%terracota%");
+		Specification<Product> cheap = (root, q, cb) -> cb.lessThanOrEqualTo(root.get("price"), new BigDecimal("10000.00"));
+		Specification<Product> named = (root, q, cb) -> cb.like(cb.lower(root.get("name")), "%barro%");
 
 		assertThat(products.findAll(cheap.and(named))).hasSize(1);
 		assertThat(products.findAll(cheap)).isNotEmpty()
-				.allSatisfy(p -> assertThat(p.getPrice()).isLessThanOrEqualTo(new BigDecimal("10.00")));
+				.allSatisfy(p -> assertThat(p.getPrice()).isLessThanOrEqualTo(new BigDecimal("10000.00")));
 	}
 
 	@Test

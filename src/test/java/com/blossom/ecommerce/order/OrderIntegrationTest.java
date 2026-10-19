@@ -95,7 +95,7 @@ class OrderIntegrationTest extends ApiIntegrationTest {
 	@Test
 	void should_sell_digital_products_without_stock() throws Exception {
 		order(newCustomerToken(), "{\"items\":[{\"productId\":25,\"quantity\":3}]}").andExpect(status().isCreated())
-			.andExpect(jsonPath("$.items[0].productName").value("Guía de Cuidado de Plantas de Interior"));
+			.andExpect(jsonPath("$.items[0].productName").value("Guía de cuidado de plantas"));
 	}
 
 	@Test
